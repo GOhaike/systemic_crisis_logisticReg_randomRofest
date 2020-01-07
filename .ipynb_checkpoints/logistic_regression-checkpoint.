@@ -1,0 +1,653 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Logistic Regression and Random Forest"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "For this project I will be working with https://www.kaggle.com/chirin/africa-economic-banking-and-systemic-crisis-data# dataset to analyse systemic crisis in 13 African countries and using logistic regression and random forest to predict a classification of the banking crisis. These two machine learning techniques where then compared for the best performance of the model."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Import Libraries"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Let's import some libraries"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns\n",
+    "import warnings\n",
+    "warnings.filterwarnings('ignore')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%matplotlib inline"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Import Dataset"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We will start by importing african_crises.csv into the dataframe. You download the dataset and save it in the same direction or import directly from Kraggle"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>case</th>\n",
+       "      <th>cc3</th>\n",
+       "      <th>country</th>\n",
+       "      <th>year</th>\n",
+       "      <th>systemic_crisis</th>\n",
+       "      <th>exch_usd</th>\n",
+       "      <th>domestic_debt_in_default</th>\n",
+       "      <th>sovereign_external_debt_default</th>\n",
+       "      <th>gdp_weighted_default</th>\n",
+       "      <th>inflation_annual_cpi</th>\n",
+       "      <th>independence</th>\n",
+       "      <th>currency_crises</th>\n",
+       "      <th>inflation_crises</th>\n",
+       "      <th>banking_crisis</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>DZA</td>\n",
+       "      <td>Algeria</td>\n",
+       "      <td>1870</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.052264</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>3.441456</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>crisis</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>DZA</td>\n",
+       "      <td>Algeria</td>\n",
+       "      <td>1871</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.052798</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>14.149140</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>no_crisis</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>DZA</td>\n",
+       "      <td>Algeria</td>\n",
+       "      <td>1872</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.052274</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>-3.718593</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>no_crisis</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>DZA</td>\n",
+       "      <td>Algeria</td>\n",
+       "      <td>1873</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.051680</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>11.203897</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>no_crisis</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>4</td>\n",
+       "      <td>1</td>\n",
+       "      <td>DZA</td>\n",
+       "      <td>Algeria</td>\n",
+       "      <td>1874</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.051308</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>-3.848561</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>no_crisis</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   case  cc3  country  year  systemic_crisis  exch_usd  \\\n",
+       "0     1  DZA  Algeria  1870                1  0.052264   \n",
+       "1     1  DZA  Algeria  1871                0  0.052798   \n",
+       "2     1  DZA  Algeria  1872                0  0.052274   \n",
+       "3     1  DZA  Algeria  1873                0  0.051680   \n",
+       "4     1  DZA  Algeria  1874                0  0.051308   \n",
+       "\n",
+       "   domestic_debt_in_default  sovereign_external_debt_default  \\\n",
+       "0                         0                                0   \n",
+       "1                         0                                0   \n",
+       "2                         0                                0   \n",
+       "3                         0                                0   \n",
+       "4                         0                                0   \n",
+       "\n",
+       "   gdp_weighted_default  inflation_annual_cpi  independence  currency_crises  \\\n",
+       "0                   0.0              3.441456             0                0   \n",
+       "1                   0.0             14.149140             0                0   \n",
+       "2                   0.0             -3.718593             0                0   \n",
+       "3                   0.0             11.203897             0                0   \n",
+       "4                   0.0             -3.848561             0                0   \n",
+       "\n",
+       "   inflation_crises banking_crisis  \n",
+       "0                 0         crisis  \n",
+       "1                 0      no_crisis  \n",
+       "2                 0      no_crisis  \n",
+       "3                 0      no_crisis  \n",
+       "4                 0      no_crisis  "
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "africa_systemic_crisis = pd.read_csv(\"~/Desktop/systemic_crisis/logistic_regression/african_crises.csv\")\n",
+    "africa_systemic_crisis.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Exploratory Data Analysis"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Let's have a look at the info. This will enable us know what types of variable we have and whether there is missing data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 1059 entries, 0 to 1058\n",
+      "Data columns (total 14 columns):\n",
+      "case                               1059 non-null int64\n",
+      "cc3                                1059 non-null object\n",
+      "country                            1059 non-null object\n",
+      "year                               1059 non-null int64\n",
+      "systemic_crisis                    1059 non-null int64\n",
+      "exch_usd                           1059 non-null float64\n",
+      "domestic_debt_in_default           1059 non-null int64\n",
+      "sovereign_external_debt_default    1059 non-null int64\n",
+      "gdp_weighted_default               1059 non-null float64\n",
+      "inflation_annual_cpi               1059 non-null float64\n",
+      "independence                       1059 non-null int64\n",
+      "currency_crises                    1059 non-null int64\n",
+      "inflation_crises                   1059 non-null int64\n",
+      "banking_crisis                     1059 non-null object\n",
+      "dtypes: float64(3), int64(8), object(3)\n",
+      "memory usage: 116.0+ KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "africa_systemic_crisis.info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Missing data "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Very good. We can see that we have 1059 entries with 14 columns with no non null. We also know that the dataset contains  interger, floats and object variable types.\n",
+    "\n",
+    "Let's further examine if there is missing data or na"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "case                               0.0\n",
+       "cc3                                0.0\n",
+       "country                            0.0\n",
+       "year                               0.0\n",
+       "systemic_crisis                    0.0\n",
+       "exch_usd                           0.0\n",
+       "domestic_debt_in_default           0.0\n",
+       "sovereign_external_debt_default    0.0\n",
+       "gdp_weighted_default               0.0\n",
+       "inflation_annual_cpi               0.0\n",
+       "independence                       0.0\n",
+       "currency_crises                    0.0\n",
+       "inflation_crises                   0.0\n",
+       "banking_crisis                     0.0\n",
+       "dtype: float64"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "africa_systemic_crisis.isna().mean()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<matplotlib.axes._subplots.AxesSubplot at 0x1a196262d0>"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "#Lets visually see\n",
+    "sns.heatmap(africa_systemic_crisis.isnull(),yticklabels=False,cbar=False,cmap='viridis')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>case</th>\n",
+       "      <th>year</th>\n",
+       "      <th>systemic_crisis</th>\n",
+       "      <th>exch_usd</th>\n",
+       "      <th>domestic_debt_in_default</th>\n",
+       "      <th>sovereign_external_debt_default</th>\n",
+       "      <th>gdp_weighted_default</th>\n",
+       "      <th>inflation_annual_cpi</th>\n",
+       "      <th>independence</th>\n",
+       "      <th>currency_crises</th>\n",
+       "      <th>inflation_crises</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <td>count</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1.059000e+03</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1059.000000</td>\n",
+       "      <td>1059.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>mean</td>\n",
+       "      <td>35.613787</td>\n",
+       "      <td>1967.767705</td>\n",
+       "      <td>0.077432</td>\n",
+       "      <td>43.140831</td>\n",
+       "      <td>0.039660</td>\n",
+       "      <td>0.152975</td>\n",
+       "      <td>0.006402</td>\n",
+       "      <td>2.084889e+04</td>\n",
+       "      <td>0.776204</td>\n",
+       "      <td>0.132200</td>\n",
+       "      <td>0.129367</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>std</td>\n",
+       "      <td>23.692402</td>\n",
+       "      <td>33.530632</td>\n",
+       "      <td>0.267401</td>\n",
+       "      <td>111.475380</td>\n",
+       "      <td>0.195251</td>\n",
+       "      <td>0.360133</td>\n",
+       "      <td>0.043572</td>\n",
+       "      <td>6.757274e+05</td>\n",
+       "      <td>0.416984</td>\n",
+       "      <td>0.349847</td>\n",
+       "      <td>0.335765</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>min</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>1860.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>-2.850214e+01</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>25%</td>\n",
+       "      <td>15.000000</td>\n",
+       "      <td>1951.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.195350</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>2.086162e+00</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>50%</td>\n",
+       "      <td>38.000000</td>\n",
+       "      <td>1973.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.868400</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>5.762330e+00</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>75%</td>\n",
+       "      <td>56.000000</td>\n",
+       "      <td>1994.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>8.462750</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>1.164405e+01</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>0.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <td>max</td>\n",
+       "      <td>70.000000</td>\n",
+       "      <td>2014.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>744.306139</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>0.400000</td>\n",
+       "      <td>2.198970e+07</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>2.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "              case         year  systemic_crisis     exch_usd  \\\n",
+       "count  1059.000000  1059.000000      1059.000000  1059.000000   \n",
+       "mean     35.613787  1967.767705         0.077432    43.140831   \n",
+       "std      23.692402    33.530632         0.267401   111.475380   \n",
+       "min       1.000000  1860.000000         0.000000     0.000000   \n",
+       "25%      15.000000  1951.000000         0.000000     0.195350   \n",
+       "50%      38.000000  1973.000000         0.000000     0.868400   \n",
+       "75%      56.000000  1994.000000         0.000000     8.462750   \n",
+       "max      70.000000  2014.000000         1.000000   744.306139   \n",
+       "\n",
+       "       domestic_debt_in_default  sovereign_external_debt_default  \\\n",
+       "count               1059.000000                      1059.000000   \n",
+       "mean                   0.039660                         0.152975   \n",
+       "std                    0.195251                         0.360133   \n",
+       "min                    0.000000                         0.000000   \n",
+       "25%                    0.000000                         0.000000   \n",
+       "50%                    0.000000                         0.000000   \n",
+       "75%                    0.000000                         0.000000   \n",
+       "max                    1.000000                         1.000000   \n",
+       "\n",
+       "       gdp_weighted_default  inflation_annual_cpi  independence  \\\n",
+       "count           1059.000000          1.059000e+03   1059.000000   \n",
+       "mean               0.006402          2.084889e+04      0.776204   \n",
+       "std                0.043572          6.757274e+05      0.416984   \n",
+       "min                0.000000         -2.850214e+01      0.000000   \n",
+       "25%                0.000000          2.086162e+00      1.000000   \n",
+       "50%                0.000000          5.762330e+00      1.000000   \n",
+       "75%                0.000000          1.164405e+01      1.000000   \n",
+       "max                0.400000          2.198970e+07      1.000000   \n",
+       "\n",
+       "       currency_crises  inflation_crises  \n",
+       "count      1059.000000       1059.000000  \n",
+       "mean          0.132200          0.129367  \n",
+       "std           0.349847          0.335765  \n",
+       "min           0.000000          0.000000  \n",
+       "25%           0.000000          0.000000  \n",
+       "50%           0.000000          0.000000  \n",
+       "75%           0.000000          0.000000  \n",
+       "max           2.000000          1.000000  "
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Let's see the data statistics\n",
+    "africa_systemic_crisis.describe()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "check variable label to gain an insight"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "var:  case  labels:  13\n",
+      "var:  cc3  labels:  13\n",
+      "var:  country  labels:  13\n",
+      "var:  year  labels:  155\n",
+      "var:  systemic_crisis  labels:  2\n",
+      "var:  exch_usd  labels:  772\n",
+      "var:  domestic_debt_in_default  labels:  2\n",
+      "var:  sovereign_external_debt_default  labels:  2\n",
+      "var:  gdp_weighted_default  labels:  6\n",
+      "var:  inflation_annual_cpi  labels:  1022\n",
+      "var:  independence  labels:  2\n",
+      "var:  currency_crises  labels:  3\n",
+      "var:  inflation_crises  labels:  2\n",
+      "var:  banking_crisis  labels:  2\n",
+      "total label:  1059\n"
+     ]
+    }
+   ],
+   "source": [
+    "#To have an ideal ob the label\n",
+    "\n",
+    "no_columns =africa_systemic_crisis.columns\n",
+    "for col in no_columns:\n",
+    "    print('var: ', col, ' labels: ', africa_systemic_crisis[col].nunique())\n",
+    "\n",
+    "print('total label: ', len(africa_systemic_crisis))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.4"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
